@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>To-Do List</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+	<nav class="navbar navbar-default">
+	  	<div class="container">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#">Taufik Herjanto - Final Project GEPI Coding Class Batch 11</a>
+			</div>
+
+	  	</div><!-- /.container -->
+	</nav>
+	<section id="content">
+		<div class="container">
+			<h1>Todo List App</h1>
+			<hr>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title pull-left">
+						What to do?
+			        </h3>
+
+			        <button class="btn btn-sm btn-success pull-right" id="add_button" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add</button>
+			        <div class="clearfix"></div>
+				</div>
+		    	<ul class="list-group" id="list-todo">
+		    		<span id="loading"> Loading...</span>
+				    <div class="clearfix"></div>
+				</ul>
+			</div>
+
+			<!-- Modal -->
+			<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+			  <div class="modal-dialog" role="document">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+			        <h4 class="modal-title" id="myModalLabel">Add Todo</h4>
+			      </div>
+			      <div class="modal-body">
+			      	<input class="form-control" type="text" id="todo" placeholder="What to do?" autocomplete="off">
+			      </div>
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			        <button type="button" id="save_todo" class="btn btn-primary">Save</button>
+			      </div>
+			    </div>
+			  </div>
+			</div>
+		</div>
+	</section>
+
+	<footer class="footer">
+      <div class="container">
+        <p class="text-muted" id="footer-text">
+      </div>
+    </footer>
+
+	<script type="text/javascript" src="js/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/firebase.js"></script>
+	<script type="text/javascript">
+
+	  // Initialize Firebase
+	 var config = {
+	    apiKey: "AIzaSyCu7F2X6qLUNolcQ3zyyhwYp6zGc9GP-NE",
+	    authDomain: "coding11-taufik.firebaseapp.com",
+	    databaseURL: "https://coding11-taufik.firebaseio.com",
+	    storageBucket: "coding11-taufik.appspot.com",
+	  };
+	  firebase.initializeApp(config);
+
+	// Get a reference to the database service
+	var database = firebase.database();
+	var todos	 = database.ref('todos');
+
+	// simpan data setelah klik tombol save todo
+	$("#save_todo").on('click', function(e){
+		// get value dari input name
+		var todo = $('#todo').val();
+
+		// data yang kita simpan berupa json/object
+		todos.push({
+			todo: todo,
+		});
+
+		console.log(todo + " tersimpan");
+		$("input#todo").val('');
+		$('#myModal').modal('toggle');
+	});
+
+	// event setelah data telah ditambahkan
+	todos.on('child_added', function(data){
+		var key 	= data.key;
+		var result	= data.val();
+
+		$("#list-todo").append('<li class="list-group-item" id="' + key +'">'+ result.todo +'<button class="btn btn-sm btn-danger delete_todo pull-right id="'+ key +'><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Delete</button></li>');
+
+		$("#list-todo > #loading").remove();
+		console.log('event child_added berisi data ' + key + result);
+	});
+
+	// event setelah data telah dihapus
+	todos.on('child_removed', function(data) {
+	  	console.log(data.key + ' telah dihapus');
+	});
+
+	var hapus = function (id) {
+		var update = {};
+		update[id] = {
+			todo: null
+		}
+
+		todos.update(update);
+	};
+
+	// var update = function (id) {
+
+	// 	var update = {};
+	// 	update[id] = {
+	// 			todo : 'taufik'
+	// 		}; 
+
+	// 	todos.update(update)
+	// }
+	$('#myModal').on('shown.bs.modal', function () {
+		$('#myInput').focus()
+	})
+
+	$("body").on('click', 'button.delete_todo', function(){
+		var key = $(this).parent().attr("id");
+		console.log("event click dengan id=" + key);
+		// hapus item
+		hapus(key);
+		$(this).parent().remove();
+	});
+
+	$("p#footer-text").html("Taufik Herjanto - " + new Date().getFullYear() + ". Dibuat dengan bahasa javascript &amp; database Firebase");
+	</script>
+	
+</body>
+</html>
